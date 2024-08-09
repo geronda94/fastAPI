@@ -42,8 +42,9 @@ fake_users = [
     {'id':2,'role':'investor', 'name':'Alex'},
     {'id':3,'role':'trader', 'name':'Jhon'},
     {'id':4,'role':'investor', 'name':'Homer', 'degree':[
-        {'id':1, 'created_at':'2020-01-01T00:00:00', 'type_degree':'newbie'}
-    ]}
+            {'id':1, 'created_at':'2020-01-01T00:00:00', 'type_degree':'newbie'}
+        ]
+    }
 ]
 
 
