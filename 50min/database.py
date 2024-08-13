@@ -20,3 +20,13 @@ class TaskOrm(Model):
     name: Mapped[str]
     description:  Mapped[Optional[str]]
 
+
+
+async def create_tables():
+    async with engine.begin() as conn:
+        await conn.run_sync(Model.metadata.create_all)
+
+async def drop_tables():
+    async with engine.begin() as conn:
+        await conn.run_sync(Model.metadata.drop_all )    
+

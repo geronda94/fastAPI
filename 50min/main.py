@@ -2,8 +2,22 @@ from typing import Annotated
 from fastapi import Depends, FastAPI
 from pydantic import BaseModel
 
+from contextlib import asynccontextmanager
+from database import create_tables, drop_tables
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await drop_tables()
+    print('База очищена')
+    await create_tables()
+    print('База готова')
+    yield 
+    print ('Перезагрузка')
+
+
+
+app = FastAPI(lifespan=lifespan)
 
 
 
