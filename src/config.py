@@ -15,3 +15,6 @@ class DB():
     HOST=os.environ.get('DB_HOST')
     PORT=os.environ.get('DB_PORT')
     NAME=os.environ.get('DB_NAME')
+    
+    
+SECRET_AUTH = os.environ.get("SECRET_AUTH")
