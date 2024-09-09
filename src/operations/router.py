@@ -6,7 +6,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from database import AsyncSession, get_async_session
 from operations.models import operation
 from operations.schemas import OperationCreate, OperationModel
-from typing import Optional, Any
+from typing import Annotated
+from fastapi_cache.decorator import cache 
+
+
+
 
 router = APIRouter(
     prefix='/operations',
@@ -15,21 +19,21 @@ router = APIRouter(
 
 
 class ResponseModel(BaseModel):
-    status: str
-    data: Optional[List[OperationModel]] = None
-    details: Optional[str] = None
+    status: str = 'success'
+    data: Annotated[List[OperationModel] , None] = None
+    details: str | None = None
 
 
-@router.get('/}', response_model=ResponseModel)
-async def get_specific_operation(operation_type, session: AsyncSession = Depends(get_async_session)):
+@router.get('/{operation_type}', response_model=ResponseModel)
+@cache(expire=60*30)##значение expire в секундах
+async def get_specific_operations(operation_type: str | None = None, session: AsyncSession = Depends(get_async_session)):
     try:
-        query = select(operation).where(operation.c.type == 'sell')
+        operation_type = 'sell' if operation_type is None else operation_type
+
+        query = select(operation).where(operation.c.type == operation_type)
         result = await session.execute(query)
         res = result.mappings().all()
-        return ResponseModel(
-            status='success',
-            data=res
-        )
+        return {'data':res}
         
 
     except Exception as ex:
