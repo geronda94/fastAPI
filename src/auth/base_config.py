@@ -19,7 +19,7 @@ def get_jwt_strategy() -> JWTStrategy:
 redis = redis.asyncio.from_url("redis://localhost:6379", decode_responses=True)
 
 def get_redis_strategy() -> RedisStrategy:
-    return RedisStrategy(redis,  lifetime_seconds=3600)
+    return RedisStrategy(redis,  lifetime_seconds=3600*24*7)
 
 auth_backend = AuthenticationBackend(
     name="redis",  #jwt
