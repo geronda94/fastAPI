@@ -1,3 +1,4 @@
+import json
 from typing import Any
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -5,7 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 from pydantic import BaseModel
-from redis import asyncio as aioredis
+from database import redis
 
 from auth.base_config import auth_backend, fastapi_users
 from auth.schemas import UserCreate, UserRead
@@ -13,6 +14,7 @@ from operations.router import router as router_operation
 from tasks.router import router as router_tasks
 from pages.router import router as router_pages
 from chat.router import router as router_chat
+from auth.router import router as router_auth
 
 from contextlib import asynccontextmanager
 
@@ -21,6 +23,7 @@ from contextlib import asynccontextmanager
 app = FastAPI(
     title="Trading App"
 )
+
 
 
 async def get_async_session():
@@ -78,7 +81,6 @@ async def get_payments(request: Request, auth_guard_payments: AuthGuard = Depend
 
 
 
-
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 app.include_router(
@@ -93,7 +95,9 @@ app.include_router(
     tags=["Auth"],
 )
 
+
 app.include_router(router_operation)
+app.include_router(router_auth)
 app.include_router(router_tasks)
 app.include_router(router_pages)
 app.include_router(router_chat)
@@ -114,7 +118,7 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup_event():
-    redis = aioredis.from_url("redis://localhost", encoding="utf8", decode_responses=True)
+    
     FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
     
     
