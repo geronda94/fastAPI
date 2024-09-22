@@ -21,7 +21,7 @@ async def read_current_user(user: User = Depends(fastapi_users.current_user())):
 
 
 
-redis_strategy = get_redis_strategy()  
+
 @router.get('/get_tokens')
 async def get_tokens():
     token_keys = await redis.keys("fastapi_users_token:*")    
