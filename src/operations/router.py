@@ -31,7 +31,7 @@ async def get_specific_operations(operation_type: str | None = None, session: As
         operation_type = 'sell' if operation_type is None else operation_type
 
         query = select(operation).where(operation.c.type == operation_type)
-        result = await session.execute(query)
+        result = await session.execute(query)       
         res = result.mappings().all()
         return {'data':res}
         
