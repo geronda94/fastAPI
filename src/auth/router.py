@@ -1,10 +1,12 @@
-
+from typing import Annotated
 from auth.manager import get_user_manager, UserManager
 from auth.models import User
 from auth.schemas import UserRead
-from .base_config import current_user, get_redis_strategy, fastapi_users
-from fastapi import APIRouter, Depends
+from .base_config import current_user
+from fastapi import APIRouter, Depends, Form,  HTTPException
 from main import redis
+from .roles import RoleManager,superuser_verify
+
 
 
 router = APIRouter(
@@ -13,9 +15,15 @@ router = APIRouter(
 )
 
 
+async def get_permissions(user: User = Depends(current_user)):
+    return RoleManager.get_permissions_by_role_id(user.role_id)
+
 
 @router.get("/me", response_model=UserRead)
-async def read_current_user(user: User = Depends(fastapi_users.current_user())):
+async def read_current_user(user: User = Depends(current_user),
+                            permissions = Depends(get_permissions)
+                            ):
+    permissions.check.read_users
     return user
 
 
@@ -23,15 +31,16 @@ async def read_current_user(user: User = Depends(fastapi_users.current_user())):
 
 
 @router.get('/get_tokens')
-async def get_tokens():
-    token_keys = await redis.keys("fastapi_users_token:*")    
-    tokens_info = []
+async def get_tokens(permissions = Depends(get_permissions),
+                     ):
     
-    for key in token_keys:
 
+    permissions.check.delete_users
+    token_keys = await redis.keys("fastapi_users_token:*")    
+    tokens_info = []    
+    for key in token_keys:
         cleaned_key = key.replace("fastapi_users_token:", "")
-        token_data = await redis.get(key)
-        
+        token_data = await redis.get(key)        
         if token_data:
             try:
                 user_id = token_data  # Здесь должна быть ваша логика
@@ -49,3 +58,16 @@ async def get_tokens():
                 })
     
     return tokens_info
+    
+
+@router.post('/delete_token')
+async def delete_token( token_key: Annotated[str, Form(description='Put token here')],
+                        superuser: User = Depends(superuser_verify),
+
+                    ):
+    
+    result = await redis.delete("fastapi_users_token:"+token_key)
+    if result:
+        return {"message": f"Token {token_key} deleted successfully."}
+    else:
+        raise HTTPException(status_code=404, detail=f"Token {token_key} not found.")
