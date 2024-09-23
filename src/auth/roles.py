@@ -1,4 +1,6 @@
+from enum import Enum
 from .base_config import current_user
+from .models import RolesEnum
 from fastapi import Depends, HTTPException
 from auth.models import User
 
@@ -10,7 +12,6 @@ def superuser_verify(user: User = Depends(current_user)):
 
 
 
-from fastapi import HTTPException
 
 class BasePermissions:
     read = False
@@ -39,7 +40,7 @@ class BasePermissions:
 
         
 
-class AdminPermissions(BasePermissions):
+class Admin(BasePermissions):
     read = True
     update = True
     create = True
@@ -50,24 +51,33 @@ class AdminPermissions(BasePermissions):
     delete_users = True
     confirm_users = True
 
-class ModeratorPermissions(BasePermissions):
+class Moderator(BasePermissions):
     read = True
     create = True
     update = True
+    read_users = True
     
-class UserPermissions(BasePermissions):
+class User(BasePermissions):
+    read = True
+    read_users = True
+
+class Guest(BasePermissions):
     read = True
 
-class GuestPermissions(BasePermissions):
-    read = True
+
+
+
+
+
+
 
 
 class RoleManager:
     roles_mapping = {
-        1: AdminPermissions,
-        2: ModeratorPermissions,
-        3: UserPermissions,
-        4: GuestPermissions,
+        RolesEnum.admin.value: Admin,
+        RolesEnum.moderator.value: Moderator,
+        RolesEnum.user.value: User,
+        RolesEnum.guest.value: Guest,
     }
 
     @staticmethod

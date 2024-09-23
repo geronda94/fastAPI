@@ -1,7 +1,6 @@
 from typing import Optional
-
 from fastapi_users import schemas
-
+from .models import RolesEnum
 
 class UserRead(schemas.BaseUser[int]):
     id: int
@@ -20,7 +19,7 @@ class UserCreate(schemas.BaseUserCreate):
     username: str
     email: str
     password: str
-    role_id: int
+    role_id: RolesEnum 
     is_active: Optional[bool] = True
     is_superuser: Optional[bool] = False
     is_verified: Optional[bool] = False
