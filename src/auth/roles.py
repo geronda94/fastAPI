@@ -75,7 +75,7 @@ class RoleManager:
         role_class = RoleManager.roles_mapping.get(role_id)
         if role_class:
             return role_class()
-        raise HTTPException(status_code=404, detail="Role not found.")
+        raise HTTPException(status_code=404, detail="no permission!")
     
     
     
