@@ -11,6 +11,11 @@ def superuser_verify(user: User = Depends(current_user)):
     return user
 
 
+class RoleEnum(Enum):
+    ADMIN = "Admin"
+    MODERATOR = "Moderator"
+    USER = "User"
+    GUEST = "Guest"
 
 
 class BasePermissions:
@@ -85,9 +90,14 @@ class RoleManager:
         role_class = RoleManager.roles_mapping.get(role_id)
         if role_class:
             return role_class()
-        raise HTTPException(status_code=404, detail="no permission!")
+        raise HTTPException(status_code=404, detail="No permission!")
     
-    
+    @staticmethod
+    def get_permissions_by_role(role: RoleEnum) -> BasePermissions:
+        role_class = RoleManager.roles_mapping.get(role)
+        if role_class:
+            return role_class()
+        raise HTTPException(status_code=404, detail="Role not found.")
     
     
     
