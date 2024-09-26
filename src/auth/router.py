@@ -1,11 +1,11 @@
 from typing import Annotated
 from auth.manager import get_user_manager, UserManager
-from auth.models import User
+from auth.models import User, RolesEnum
 from auth.schemas import UserRead
 from .base_config import current_user
 from fastapi import APIRouter, Depends, Form,  HTTPException
 from main import redis
-from .roles import RoleManager,superuser_verify
+from .roles import RoleManager,superuser_verify, permission, role
 
 
 
@@ -20,10 +20,9 @@ async def get_permissions(user: User = Depends(current_user)):
 
 
 @router.get("/me", response_model=UserRead)
-async def read_current_user(user: User = Depends(current_user),
-                            permissions = Depends(get_permissions)
+@permission('create_users')
+async def read_current_user(user: User = Depends(current_user)
                             ):
-    permissions.check.read_users
     return user
 
 
@@ -31,11 +30,10 @@ async def read_current_user(user: User = Depends(current_user),
 
 
 @router.get('/get_tokens')
-async def get_tokens(permissions = Depends(get_permissions),
-                     ):
-    
+@role([RolesEnum.admin.value])
+async def get_tokens(user: User  = Depends(current_user)
+                     ):    
 
-    permissions.check.delete_users
     token_keys = await redis.keys("fastapi_users_token:*")    
     tokens_info = []    
     for key in token_keys:

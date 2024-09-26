@@ -8,16 +8,15 @@ from fastapi_cache.backends.redis import RedisBackend
 from pydantic import BaseModel
 from database import redis
 
-from auth.base_config import auth_backend, fastapi_users
+from auth.base_config import auth_backend, fastapi_users, current_user
 from auth.schemas import UserCreate, UserRead
 from operations.router import router as router_operation
 from tasks.router import router as router_tasks
 from pages.router import router as router_pages
 from chat.router import router as router_chat
 from auth.router import router as router_auth
-
-from contextlib import asynccontextmanager
-
+from auth.roles import role, permission
+from auth.models import User, RolesEnum
 
 
 app = FastAPI(
@@ -50,13 +49,18 @@ pg_class = Paginator(2,3)
 
 
 @app.get('/subject-class')
-def get_subject(pagination_params: Paginator = Depends()):
+@role([RolesEnum.admin.value])
+async def get_subject(user: User = Depends(current_user),
+                pagination_params: Paginator = Depends()
+                ):
     return pagination_params
 
 
 
 @app.get('/subject')
-def get_subject(pagination_params: dict = pagination):
+@permission('read')
+async def get_subject(user: User = Depends(current_user),
+                      pagination_params: dict = pagination):
     return pagination_params
 
 
@@ -73,7 +77,11 @@ class AuthGuard:
 auth_guard_payments = AuthGuard('payments')
 
 @app.get('/get_payments', dependencies=[Depends(auth_guard_payments)])
-async def get_payments(request: Request, auth_guard_payments: AuthGuard = Depends(auth_guard_payments)):
+@role([RolesEnum.admin.value])
+async def get_payments(request: Request, 
+                       auth_guard_payments: AuthGuard = Depends(auth_guard_payments),
+                       user: User = Depends(current_user)
+                       ):
     return request.client
 
 

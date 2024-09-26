@@ -1,4 +1,4 @@
-from enum import Enum
+from functools import wraps
 from .base_config import current_user
 from .models import RolesEnum
 from fastapi import Depends, HTTPException
@@ -11,11 +11,6 @@ def superuser_verify(user: User = Depends(current_user)):
     return user
 
 
-class RoleEnum(Enum):
-    ADMIN = "Admin"
-    MODERATOR = "Moderator"
-    USER = "User"
-    GUEST = "Guest"
 
 
 class BasePermissions:
@@ -93,11 +88,33 @@ class RoleManager:
         raise HTTPException(status_code=404, detail="No permission!")
     
     @staticmethod
-    def get_permissions_by_role(role: RoleEnum) -> BasePermissions:
+    def get_permissions_by_role(role: RolesEnum) -> BasePermissions:
         role_class = RoleManager.roles_mapping.get(role)
         if role_class:
             return role_class()
         raise HTTPException(status_code=404, detail="Role not found.")
     
+# Декоратор для проверки ролей пользователя
+def role(allowed_roles: list[RolesEnum]):
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(*args, user: User = Depends(current_user), **kwargs):
+            # Проверяем роль пользователя напрямую через user.role_id
+            if RolesEnum(user.role_id) not in allowed_roles:
+                raise HTTPException(status_code=403, detail="You do not have the required role!")
+            return await func(*args, user=user, **kwargs)
+        return wrapper
+    return decorator
+
     
-    
+def permission(permission_name: str):
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(*args, user: User = Depends(current_user), **kwargs):
+            permissions = RoleManager.get_permissions_by_role_id(user.role_id)
+            if not getattr(permissions.check, permission_name, False):
+                raise HTTPException(status_code=403, detail=f"Permission '{permission_name}' denied!")
+
+            return await func(user, *args, **kwargs)  # Обратите внимание на это место
+        return wrapper
+    return decorator
