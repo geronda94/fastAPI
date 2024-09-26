@@ -9,7 +9,11 @@ import redis.asyncio
 from fastapi_users.authentication import RedisStrategy
 from database import redis
 
-cookie_transport = CookieTransport(cookie_name="bonds", cookie_max_age=3600*24*7)
+cookie_transport = CookieTransport(
+                                    cookie_name="bonds", 
+                                    cookie_max_age=3600*24*7,
+                                    cookie_secure=True,   
+                                    cookie_samesite="none")
 
 
 def get_jwt_strategy() -> JWTStrategy:
