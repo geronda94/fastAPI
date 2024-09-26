@@ -28,14 +28,12 @@ class BasePermissions:
             self.permissions = permissions
 
         def __getattr__(self, permission_name: str):
-            """Проверяет право доступа через точку (например, check.read_users)"""
             if not getattr(self.permissions, permission_name, False):
                 raise HTTPException(status_code=403, detail=f"Permission denied: {permission_name}")
             return True  
 
     @property
     def check(self):
-        """Возвращает экземпляр CheckPermissions для проверки через точку"""
         return self.CheckPermissions(self)
 
         
@@ -69,9 +67,6 @@ class Guest(BasePermissions):
 
 
 
-
-
-
 class RoleManager:
     roles_mapping = {
         RolesEnum.admin.value: Admin,
@@ -95,7 +90,7 @@ class RoleManager:
         raise HTTPException(status_code=404, detail="Role not found.")
     
     
-# Декоратор для проверки ролей пользователя
+
 def role(allowed_roles: list[RolesEnum]):
     """_summary_
 
