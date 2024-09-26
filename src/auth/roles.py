@@ -94,8 +94,14 @@ class RoleManager:
             return role_class()
         raise HTTPException(status_code=404, detail="Role not found.")
     
+    
 # Декоратор для проверки ролей пользователя
 def role(allowed_roles: list[RolesEnum]):
+    """_summary_
+
+    Args:
+        allowed_roles [(RolesEnum.admin.value, RolesEnum.moderator.value, RolesEnum.user.value, RolesEnum.guest.value)]: _description_
+    """
     def decorator(func):
         @wraps(func)
         async def wrapper(*args, user: User = Depends(current_user), **kwargs):
@@ -108,6 +114,21 @@ def role(allowed_roles: list[RolesEnum]):
 
     
 def permission(permission_name: str):
+    """_summary_
+
+    Args:
+        permission_name ('read'): _description_
+        permission_name ('update'): _description_
+        permission_name ('create'): _description_
+        permission_name ('delete'): _description_
+        permission_name ('read_users'): _description_
+        permission_name ('read_users'): _description_
+        permission_name ('update_users'): _description_
+        permission_name ('create_users'): _description_
+        permission_name ('delete_users'): _description_
+        permission_name ('confirm_users'): _description_           
+    
+    """
     def decorator(func):
         @wraps(func)
         async def wrapper(*args, user: User = Depends(current_user), **kwargs):
