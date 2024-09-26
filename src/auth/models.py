@@ -7,7 +7,7 @@ from database import Base
 
 
 
-class RolesEnum(int, Enum):
+class Roles(int, Enum):
     user = 1
     moderator = 2
     admin = 3
@@ -21,7 +21,7 @@ class User(SQLAlchemyBaseUserTable[int], Base):
     email = Column(String, nullable=False)
     username = Column(String, nullable=False)
     registered_at = Column(TIMESTAMP, default=datetime.utcnow)
-    role_id = Column(Integer, default=RolesEnum.guest.value)
+    role_id = Column(Integer, default=Roles.guest.value)
     hashed_password: str = Column(String(length=1024), nullable=False)
     is_active: bool = Column(Boolean, default=True, nullable=False)
     is_superuser: bool = Column(Boolean, default=False, nullable=False)

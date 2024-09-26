@@ -15,8 +15,8 @@ from tasks.router import router as router_tasks
 from pages.router import router as router_pages
 from chat.router import router as router_chat
 from auth.router import router as router_auth
-from auth.roles import role, permission
-from auth.models import User, RolesEnum
+from auth.roles import role, permission, Perms
+from auth.models import User, Roles
 
 
 app = FastAPI(
@@ -49,7 +49,7 @@ pg_class = Paginator(2,3)
 
 
 @app.get('/subject-class')
-@role([RolesEnum.admin.value])
+@role([Roles.admin])
 async def get_subject(user: User = Depends(current_user),
                 pagination_params: Paginator = Depends()
                 ):
@@ -58,7 +58,7 @@ async def get_subject(user: User = Depends(current_user),
 
 
 @app.get('/subject')
-@permission('read')
+@permission([Perms.READ])
 async def get_subject(user: User = Depends(current_user),
                       pagination_params: dict = pagination):
     return pagination_params
@@ -77,7 +77,7 @@ class AuthGuard:
 auth_guard_payments = AuthGuard('payments')
 
 @app.get('/get_payments', dependencies=[Depends(auth_guard_payments)])
-@role([RolesEnum.admin.value])
+@role([Roles.admin])
 async def get_payments(request: Request, 
                        auth_guard_payments: AuthGuard = Depends(auth_guard_payments),
                        user: User = Depends(current_user)

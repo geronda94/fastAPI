@@ -1,8 +1,9 @@
 from functools import wraps
 from .base_config import current_user
-from .models import RolesEnum
+from .models import Roles
 from fastapi import Depends, HTTPException
 from auth.models import User
+from enum import Enum
 
 
 def superuser_verify(user: User = Depends(current_user)):
@@ -11,126 +12,120 @@ def superuser_verify(user: User = Depends(current_user)):
     return user
 
 
+class Perms(Enum):
+    READ = "read"
+    UPDATE = "update"
+    CREATE = "create"
+    DELETE = "delete"
+    READ_USERS = "read_users"
+    UPDATE_USERS = "update_users"
+    CREATE_USERS = "create_users"
+    DELETE_USERS = "delete_users"
+    CONFIRM_USERS = "confirm_users"
 
 
 class BasePermissions:
-    read = False
-    update = False
-    create = False
-    delete = False
-    read_users = False
-    update_users = False
-    create_users = False
-    delete_users = False
+    permissions = set()  # Используем множество для хранения разрешений
 
     class CheckPermissions:
         def __init__(self, permissions):
             self.permissions = permissions
 
-        def __getattr__(self, permission_name: str):
-            if not getattr(self.permissions, permission_name, False):
-                raise HTTPException(status_code=403, detail=f"Permission denied: {permission_name}")
-            return True  
+        def has_permissions(self, required_permissions: list[Perms]):
+            """Проверяет, есть ли у пользователя все требуемые разрешения"""
+            missing_permissions = [perm for perm in required_permissions if perm not in self.permissions]
+            if missing_permissions:
+                missing_str = ', '.join([perm.value for perm in missing_permissions])
+                raise HTTPException(status_code=403, detail=f"Permission(s) denied: {missing_str}")
+            return True
 
     @property
     def check(self):
-        return self.CheckPermissions(self)
+        """Возвращает экземпляр CheckPermissions для проверки через метод"""
+        return self.CheckPermissions(self.permissions)
 
-        
 
 class Admin(BasePermissions):
-    read = True
-    update = True
-    create = True
-    delete = True
-    read_users = True
-    update_users = True
-    create_users = True
-    delete_users = True
-    confirm_users = True
+    permissions = {
+        Perms.READ, 
+        Perms.UPDATE, 
+        Perms.CREATE, 
+        Perms.DELETE,
+        Perms.READ_USERS,
+        Perms.UPDATE_USERS,
+        Perms.CREATE_USERS,
+        Perms.DELETE_USERS,
+        Perms.CONFIRM_USERS,
+    }
 
 class Moderator(BasePermissions):
-    read = True
-    create = True
-    update = True
-    read_users = True
-    
+    permissions = {
+        Perms.READ, 
+        Perms.CREATE, 
+        Perms.UPDATE,
+        Perms.READ_USERS,
+    }
+
 class User(BasePermissions):
-    read = True
-    read_users = True
+    permissions = {
+        Perms.READ, 
+        Perms.READ_USERS,
+    }
 
 class Guest(BasePermissions):
-    read = True
-
-
-
-
+    permissions = {
+        Perms.READ,
+    }
 
 
 class RoleManager:
     roles_mapping = {
-        RolesEnum.admin.value: Admin,
-        RolesEnum.moderator.value: Moderator,
-        RolesEnum.user.value: User,
-        RolesEnum.guest.value: Guest,
+        Roles.admin: Admin,
+        Roles.moderator: Moderator,
+        Roles.user: User,
+        Roles.guest: Guest,
     }
 
     @staticmethod
     def get_permissions_by_role_id(role_id: int) -> BasePermissions:
-        role_class = RoleManager.roles_mapping.get(role_id)
+        role_class = RoleManager.roles_mapping.get(Roles(role_id))
         if role_class:
             return role_class()
         raise HTTPException(status_code=404, detail="No permission!")
     
     @staticmethod
-    def get_permissions_by_role(role: RolesEnum) -> BasePermissions:
+    def get_permissions_by_role(role: Roles) -> BasePermissions:
         role_class = RoleManager.roles_mapping.get(role)
         if role_class:
             return role_class()
         raise HTTPException(status_code=404, detail="Role not found.")
-    
-    
 
-def role(allowed_roles: list[RolesEnum]):
-    """_summary_
 
+def role(allowed_roles: list[Roles]):
+    """
+    Декоратор для проверки роли пользователя.
     Args:
-        allowed_roles [(RolesEnum.admin.value, RolesEnum.moderator.value, RolesEnum.user.value, RolesEnum.guest.value)]: _description_
+        allowed_roles (list[Roles]): Список разрешенных ролей.
     """
     def decorator(func):
         @wraps(func)
         async def wrapper(*args, user: User = Depends(current_user), **kwargs):
-            # Проверяем роль пользователя напрямую через user.role_id
-            if RolesEnum(user.role_id) not in allowed_roles:
+            # Проверяем роль пользователя через user.role_id
+            if Roles(user.role_id) not in allowed_roles:
                 raise HTTPException(status_code=403, detail="You do not have the required role!")
             return await func(*args, user=user, **kwargs)
         return wrapper
     return decorator
 
-    
-def permission(permission_name: str):
-    """_summary_
 
-    Args:
-        permission_name ('read'): _description_
-        permission_name ('update'): _description_
-        permission_name ('create'): _description_
-        permission_name ('delete'): _description_
-        permission_name ('read_users'): _description_
-        permission_name ('read_users'): _description_
-        permission_name ('update_users'): _description_
-        permission_name ('create_users'): _description_
-        permission_name ('delete_users'): _description_
-        permission_name ('confirm_users'): _description_           
-    
-    """
+def permission(required_permissions: list[Perms]):
+    """Декоратор для проверки нескольких разрешений"""
     def decorator(func):
         @wraps(func)
         async def wrapper(*args, user: User = Depends(current_user), **kwargs):
             permissions = RoleManager.get_permissions_by_role_id(user.role_id)
-            if not getattr(permissions.check, permission_name, False):
-                raise HTTPException(status_code=403, detail=f"Permission '{permission_name}' denied!")
-
-            return await func(user, *args, **kwargs)  # Обратите внимание на это место
+            if not permissions.check.has_permissions(required_permissions):
+                raise HTTPException(status_code=403, detail="Permission denied!")
+            return await func(*args, user=user, **kwargs)
         return wrapper
     return decorator
