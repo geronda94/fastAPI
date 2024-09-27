@@ -21,3 +21,7 @@ class PaymentMethod(str, Enum):
     cash = 'Наличными при получении'
     remittance = 'Денежный перевод'
     online = 'Оплата онлайн'
+    
+class OrderUpdateStatus(str, Enum):
+    posted = 'posted'
+    checked = 'checked'
