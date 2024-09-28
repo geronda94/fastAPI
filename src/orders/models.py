@@ -1,9 +1,9 @@
 from sqlalchemy import Column, Integer, String, TIMESTAMP, Enum, Float, Text, ForeignKey, JSON
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from .schemas import OrderStatus, DeliveryMethod, PaymentMethod, OrderUpdateStatus
-from auth.manager import User
-from database import Base
+from src.orders.schemas import OrderStatus, DeliveryMethod, PaymentMethod, OrderUpdateStatus
+from src.auth.models import User
+from src.database import Base
 
 
 
