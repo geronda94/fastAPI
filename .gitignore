@@ -6,3 +6,11 @@ alembic.ini
 .env
 /__pycache__
 __pycache__
+.gitignore
+test.py
+/src/chat
+/src/templates
+/src/pages
+/src/tasks
+/src/templates
+/src/operations
