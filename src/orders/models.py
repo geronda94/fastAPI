@@ -1,9 +1,9 @@
 from sqlalchemy import Column, Integer, String, TIMESTAMP, Enum, Float, Text, ForeignKey, JSON
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from src.orders.schemas import OrderStatus, DeliveryMethod, PaymentMethod, OrderUpdateStatus
-from src.auth.models import User
-from src.database import Base
+from orders.schemas import OrderStatus, DeliveryMethod, PaymentMethod, OrderUpdateStatus
+from auth.models import User
+from database import Base
 
 
 
@@ -50,7 +50,7 @@ class Site(Base):
     id = Column(Integer, primary_key=True)
     site_name = Column(String, unique=True, nullable=False)
     site_domain = Column(String, unique=True, nullable=False)
-    site_owner = Column(Integer, ForeignKey(User.id), nullable=False)  # Связь с пользователем (User.id)
+    site_owner = Column(Integer)  # Связь с пользователем (User.id)
     owner_telegram = Column(String, nullable=True)  # Телеграм ID владельца сайта
     site_description = Column(String, nullable=True)
     site_category = Column(String, nullable=True)

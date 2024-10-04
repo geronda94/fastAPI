@@ -17,7 +17,7 @@ from chat.router import router as router_chat
 from auth.router import router as router_auth
 from auth.roles import role, permission, Perms
 from auth.models import User, Roles
-
+from orders.router import router as router_orders
 
 app = FastAPI(
     title="Trading App"
@@ -91,6 +91,13 @@ async def get_payments(request: Request,
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+
+# app.include_router(router_operation)
+app.include_router(router_orders)
+app.include_router(router_auth)
+app.include_router(router_tasks)
+app.include_router(router_pages)
+app.include_router(router_chat)
 app.include_router(
     fastapi_users.get_auth_router(auth_backend),
     prefix="/auth",
@@ -103,12 +110,6 @@ app.include_router(
     tags=["Auth"],
 )
 
-
-# app.include_router(router_operation)
-app.include_router(router_auth)
-app.include_router(router_tasks)
-app.include_router(router_pages)
-app.include_router(router_chat)
 
 
 origins = [
