@@ -194,7 +194,7 @@ async def check_orders(bot: Bot):
                     owner_telegram_id = site.owner_telegram.strip()  # Удаляем лишние пробелы
 
                     # Проверяем, есть ли Telegram ID
-                    if owner_telegram_id:
+                    if owner_telegram_id and (len(owner_telegram_id)>4):
                         try:
                             # Создаем экземпляр OrderRead на основе заказа
                             order_data = OrderRead.model_validate(order)  # Используйте model_validate вместо from_orm
