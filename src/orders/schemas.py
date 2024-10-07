@@ -78,22 +78,19 @@ class OrderRead(OrderCreate):
         # Словарь для хранения сообщения
         message_data = {
             "ID": self.id,
-            "Сайт": self.site_name,
-            "Статус заказа": self.order_status,
-            "Телефон клиента": self.client_phone,
-            "Имя клиента": self.client_name,
-            "Email клиента": self.client_email,
-            "Город клиента": self.client_city,
-            "Адрес клиента": self.client_address,
-            "Метод доставки": self.delivery_method,
-            "Метод оплаты": self.payment_method,
-            "ID платежа": self.payment_id,
-            "Название товара": self.product_name,
-            "Тип товара": self.product_type,
-            "Цвет товара": self.product_color,
-            "Размер товара": self.product_size,
-            "Количество товара": self.product_quantity,
-            "Дата заказа": formatted_date,
+            "Site Name": self.site_name,
+            "Client Phone": self.client_phone,
+            "Client Name": self.client_name,
+            "Client Email": self.client_email,
+            "Client City": self.client_city,
+            "Client Address": self.client_address,
+
+            "Product Name": self.product_name,
+            "Product Type": self.product_type,
+            "Product Color": self.product_color,
+            "Product Size": self.product_size,
+            "Product quantity": self.product_quantity,
+            "DateTime": formatted_date,
         }
 
         # Удаляем пустые значения и поля с ценами равными 0.0

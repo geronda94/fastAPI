@@ -55,6 +55,7 @@ class Site(Base):
     site_domain = Column(String, nullable=True)
     site_owner = Column(Integer)  # Связь с пользователем (User.id)
     owner_telegram = Column(String, nullable=True)  # Телеграм ID владельца сайта
+    owner_email = Column(String, nullable=True)
     site_description = Column(String, nullable=True)
     site_category = Column(String, nullable=True)
         

@@ -38,11 +38,11 @@ SUPER_ADMIN = '6857394634'
 dp = Dispatcher()
 
 
-
 # Состояния FSM для добавления сайта
 class AddSite(StatesGroup):
     add_site = State()
     add_owner_id = State()
+    add_owner_email = State()  # Добавляем новое состояние для email
     add_description = State()
     add_category = State()
 
@@ -86,6 +86,14 @@ async def check_site_name(message: Message, state: FSMContext):
 async def get_owner_id(message: Message, state: FSMContext):
     owner_id = message.text
     await state.update_data(owner_id=owner_id)
+    await message.answer("Введите email владельца:")
+    await state.set_state(AddSite.add_owner_email)  # Переходим к новому состоянию
+
+
+@dp.message(AddSite.add_owner_email)
+async def get_owner_email(message: Message, state: FSMContext):
+    owner_email = message.text
+    await state.update_data(owner_email=owner_email)  # Сохраняем email
     await message.answer("Введите описание сайта:")
     await state.set_state(AddSite.add_description)
 
@@ -105,6 +113,7 @@ async def get_category(message: Message, state: FSMContext):
 
     site_name = user_data['site_name']
     owner_id = user_data['owner_id']
+    owner_email = user_data['owner_email']  # Получаем email
     description = user_data['description']
 
     # Получаем сессию
@@ -115,6 +124,7 @@ async def get_category(message: Message, state: FSMContext):
     new_site = Site(
         site_name=site_name,
         owner_telegram=owner_id,  # Убедитесь, что вы добавили это поле в предыдущие шаги
+        owner_email=owner_email,  # Добавляем email владельца
         site_description=description,
         site_category=category
     )
@@ -128,6 +138,7 @@ async def get_category(message: Message, state: FSMContext):
         await message.answer(f"Сайт добавлен!\n\n"
                              f"Название: {site_name}\n"
                              f"ID Владельца: {owner_id}\n"
+                             f"Email Владельца: {owner_email}\n"  # Уведомляем email
                              f"Описание: {description}\n"
                              f"Категория: {category}")
 
@@ -140,7 +151,6 @@ async def get_category(message: Message, state: FSMContext):
         await session.close()  # Закрываем сессию
 
     await state.clear()
-
 
 
 
@@ -167,7 +177,6 @@ async def update_cache():
         
         
 
-
 async def check_orders(bot: Bot):
     async for session in get_async_session():  # Используем асинхронный цикл для получения сессии
         try:
@@ -182,16 +191,30 @@ async def check_orders(bot: Bot):
                 site_name = order.site_name  # Получаем имя сайта из заказа
                 if site_name in cached_sites:
                     site = cached_sites[site_name]
-                    owner_telegram_id = site.owner_telegram  # Получаем телеграм ID владельца сайта
-                    # Создаем экземпляр OrderRead на основе заказа
-                    order_data = OrderRead.model_validate(order)  # Используйте model_validate вместо from_orm
-                    # Получаем сообщение через метод format_message
-                    message = order_data.format_message()
-                    # Отправляем сообщение владельцу сайта
-                    await bot.send_message(owner_telegram_id, message)
-                    # Обновляем статус уведомления в заказе
-                    stmt = update(Order).where(Order.id == order.id).values(telegram_notification=TelegramNotification.delivered)
-                    await session.execute(stmt)
+                    owner_telegram_id = site.owner_telegram.strip()  # Удаляем лишние пробелы
+
+                    # Проверяем, есть ли Telegram ID
+                    if owner_telegram_id:
+                        try:
+                            # Создаем экземпляр OrderRead на основе заказа
+                            order_data = OrderRead.model_validate(order)  # Используйте model_validate вместо from_orm
+                            # Получаем сообщение через метод format_message
+                            message = order_data.format_message()
+                            # Отправляем сообщение владельцу сайта
+                            await bot.send_message(owner_telegram_id, message)
+                            
+                            # Обновляем статус уведомления в заказе
+                            stmt = update(Order).where(Order.id == order.id).values(telegram_notification=TelegramNotification.delivered)
+                            await session.execute(stmt)
+                        except Exception as send_ex:
+                            # Если не удалось отправить сообщение, обновляем статус на ошибку
+                            stmt = update(Order).where(Order.id == order.id).values(telegram_notification=TelegramNotification.delivered)
+                            await session.execute(stmt)
+                            await bot.send_message(SUPER_ADMIN, text=f'Не удалось отправить сообщение владельцу {owner_telegram_id}: {send_ex}')
+                    else:
+                        # Если ID отсутствует, обновляем статус заказа
+                        stmt = update(Order).where(Order.id == order.id).values(telegram_notification=TelegramNotification.delivered)
+                        await session.execute(stmt)
             # Не забудьте закоммитить изменения в базе данных
             await session.commit()
         except Exception as ex:
@@ -199,8 +222,6 @@ async def check_orders(bot: Bot):
             await bot.send_message(SUPER_ADMIN, text=str(ex))
         finally:
             await session.close()  # Закрываем сессию
-
-
 
 
 
