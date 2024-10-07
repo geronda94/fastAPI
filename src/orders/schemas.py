@@ -43,6 +43,7 @@ class OrderCreate(BaseModel):
     order_status: OrderStatus = OrderStatus.received.value
     telegram_notification: TelegramNotification = TelegramNotification.waiting.value
     client_phone: str
+    client_name: str
     client_email: EmailStr
     client_city: str | None = None
     client_address: str | None = None
@@ -80,6 +81,7 @@ class OrderRead(OrderCreate):
             "Сайт": self.site_name,
             "Статус заказа": self.order_status,
             "Телефон клиента": self.client_phone,
+            "Имя клиента": self.client_name,
             "Email клиента": self.client_email,
             "Город клиента": self.client_city,
             "Адрес клиента": self.client_address,

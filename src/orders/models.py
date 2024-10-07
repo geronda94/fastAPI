@@ -19,6 +19,7 @@ class Order(Base):
     
     
     client_phone = Column(String, nullable=False)
+    client_name = Column(String, nullable=True)
     client_email = Column(String, nullable=True)
     client_city = Column(String, nullable=True)
     client_address = Column(String, nullable=True)
