@@ -194,7 +194,9 @@ async def check_orders(bot: Bot):
                     await session.execute(stmt)
             # Не забудьте закоммитить изменения в базе данных
             await session.commit()
-
+        except Exception as ex:
+            await bot.send_message(SUPER_ADMIN, text='Ошибка отправки заказа')
+            await bot.send_message(SUPER_ADMIN, text=str(ex))
         finally:
             await session.close()  # Закрываем сессию
 
