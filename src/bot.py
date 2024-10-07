@@ -5,7 +5,7 @@ from aiogram import Bot, Dispatcher, F, types
 from aiogram.filters import Filter, Command, CommandStart
 import asyncio
 import logging #импортируем библиотеку логирования
-from aiogram.types import BotCommand, BotCommandScopeChat  #Узнать про скопы
+from aiogram.types import BotCommand, BotCommandScopeChat, BotCommandScopeDefault #Узнать про скопы
 
 from aiogram.types import Message
 
@@ -26,6 +26,7 @@ from orders.models import Order, Site
 
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.context import FSMContext
+from aiogram.filters import StateFilter 
 #Блок инициализации#############################
 
 TOKEN = TG_TOKEN
@@ -74,7 +75,7 @@ async def check_site_name(message: Message, state: FSMContext):
 
     if exists:
         await message.answer(f"Сайт с именем {site_name} уже существует.")
-        await state.finish()
+        await state.clear()
     else:
         await state.update_data(site_name=site_name)
         await message.answer("Введите Telegram ID владельца:")
@@ -206,14 +207,44 @@ async def check_orders(bot: Bot):
 async def set_admin_commands(bot: Bot):
     commands = [
         BotCommand(command='/new_domain', description='Добавить домен'),
+        BotCommand(command='/start', description='Мой ID')
     ]
     
     # Устанавливаем команды только для администраторов чата
     await bot.set_my_commands(commands, scope=BotCommandScopeChat(chat_id=SUPER_ADMIN))
 
 
-async def start_bot(bot: Bot):
+async def set_commands(bot: Bot):
+    commands = [
+        BotCommand(command='/start', description='Мой ID'),
+    ]
+    
+    await bot.set_my_commands(commands, scope=BotCommandScopeDefault())
+    
+    
+    
+@dp.message(CommandStart,  StateFilter("*"))   
+async def start_command(message: Message, state: FSMContext):
+    # Проверяем, есть ли активное состояние
+    current_state = await state.get_state()
+
+    if current_state:
+        # Если состояние есть, сбрасываем его
+        await state.clear()
+        await message.answer("Ваше состояние было сброшено.")
+
+    # Отправляем пользователю его ID
+    await message.answer(f"Ваш ID: {message.from_user.id}")
+
+
+
+async def start_bot(bot: Bot, state: FSMContext = None):
+    # Установка команд для администратора и пользователей
     await set_admin_commands(bot)
+    await set_commands(bot)
+
+
+    # Отправляем сообщение супер-администратору о запуске бота
     await bot.send_message(SUPER_ADMIN, text='Бот запущен!')
     
 
