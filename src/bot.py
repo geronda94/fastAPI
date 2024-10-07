@@ -37,7 +37,6 @@ SUPER_ADMIN = '6857394634'
 
 dp = Dispatcher()
 
-
 # Состояния FSM для добавления сайта
 class AddSite(StatesGroup):
     add_site = State()
@@ -49,7 +48,6 @@ class AddSite(StatesGroup):
 
 # Функция для проверки наличия сайта в базе данных
 async def check_site_exists(session: AsyncSession, site_name: str) -> bool:
-    # Запрос к базе данных
     result = await session.execute(
         select(Site).filter_by(site_name=site_name)
     )
@@ -64,7 +62,7 @@ async def start_adding_site(message: Message, state: FSMContext):
 
 @dp.message(AddSite.add_site)
 async def check_site_name(message: Message, state: FSMContext):
-    site_name = message.text
+    site_name = message.text.strip()  # Удаляем лишние пробелы
 
     # Получаем сессию
     session_generator = get_async_session()
@@ -84,7 +82,7 @@ async def check_site_name(message: Message, state: FSMContext):
 
 @dp.message(AddSite.add_owner_id)
 async def get_owner_id(message: Message, state: FSMContext):
-    owner_id = message.text
+    owner_id = message.text.strip()  # Удаляем лишние пробелы
     await state.update_data(owner_id=owner_id)
     await message.answer("Введите email владельца:")
     await state.set_state(AddSite.add_owner_email)  # Переходим к новому состоянию
@@ -92,7 +90,7 @@ async def get_owner_id(message: Message, state: FSMContext):
 
 @dp.message(AddSite.add_owner_email)
 async def get_owner_email(message: Message, state: FSMContext):
-    owner_email = message.text
+    owner_email = message.text.strip()  # Удаляем лишние пробелы
     await state.update_data(owner_email=owner_email)  # Сохраняем email
     await message.answer("Введите описание сайта:")
     await state.set_state(AddSite.add_description)
@@ -100,7 +98,7 @@ async def get_owner_email(message: Message, state: FSMContext):
 
 @dp.message(AddSite.add_description)
 async def get_description(message: Message, state: FSMContext):
-    description = message.text
+    description = message.text.strip()  # Удаляем лишние пробелы
     await state.update_data(description=description)
     await message.answer("Введите категорию сайта:")
     await state.set_state(AddSite.add_category)
@@ -108,7 +106,7 @@ async def get_description(message: Message, state: FSMContext):
 
 @dp.message(AddSite.add_category)
 async def get_category(message: Message, state: FSMContext):
-    category = message.text
+    category = message.text.strip()  # Удаляем лишние пробелы
     user_data = await state.get_data()
 
     site_name = user_data['site_name']
@@ -123,7 +121,7 @@ async def get_category(message: Message, state: FSMContext):
     # Создаем новый объект Site
     new_site = Site(
         site_name=site_name,
-        owner_telegram=owner_id,  # Убедитесь, что вы добавили это поле в предыдущие шаги
+        owner_telegram=owner_id,
         owner_email=owner_email,  # Добавляем email владельца
         site_description=description,
         site_category=category
@@ -138,7 +136,7 @@ async def get_category(message: Message, state: FSMContext):
         await message.answer(f"Сайт добавлен!\n\n"
                              f"Название: {site_name}\n"
                              f"ID Владельца: {owner_id}\n"
-                             f"Email Владельца: {owner_email}\n"  # Уведомляем email
+                             f"Email Владельца: {owner_email}\n"
                              f"Описание: {description}\n"
                              f"Категория: {category}")
 
@@ -150,9 +148,7 @@ async def get_category(message: Message, state: FSMContext):
     finally:
         await session.close()  # Закрываем сессию
 
-    await state.clear()
-
-
+    await state.clear()  # Сбрасываем состояние только после успешного завершения процесса
 
 
 
