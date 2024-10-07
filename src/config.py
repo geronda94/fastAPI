@@ -25,3 +25,5 @@ SMTP_USERNAME=os.environ.get('SMTP_USERNAME')
 SMTP_PASSWORD=os.environ.get('SMTP_PASSWORD')
 
 TG_TOKEN=os.environ.get('TG_TOKEN')
+
+CAPTCHA_SECRET=os.environ.get('CAPTCHA_SECRET')

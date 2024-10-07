@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
+import httpx
 from pydantic import BaseModel
 from sqlalchemy import select
 from database import redis, AsyncSession, get_async_session
@@ -20,6 +21,7 @@ from auth.models import User, Roles
 from orders.router import router as router_orders
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from config import CAPTCHA_SECRET
 
 
 app = FastAPI(
@@ -30,6 +32,22 @@ scheduler = AsyncIOScheduler()
 
 
 
+@app.post("/verify-recaptcha")
+async def verify_recaptcha(token: str):
+    payload = {
+        'secret': CAPTCHA_SECRET,
+        'response': token
+    }
+    
+    async with httpx.AsyncClient() as client:
+        response = await client.post('https://www.google.com/recaptcha/api/siteverify', data=payload)
+        result = response.json()
+    
+    if result.get("success"):
+        score = result.get("score", 0)
+        return {"score": score}
+    else:
+        raise HTTPException(status_code=400, detail="reCAPTCHA verification failed")
     
 
 

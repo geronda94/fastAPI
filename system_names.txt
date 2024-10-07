@@ -10,6 +10,7 @@ fa-try
   "client_email": "user@example.com",
   "client_city": "string",
   "client_address": "string",
-  "client_name": "goga"
-
+  "client_name": "goga",
+  "type_message": "message",
+  "client_message": "message"
 }
