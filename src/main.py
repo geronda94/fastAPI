@@ -13,9 +13,7 @@ from auth.base_config import auth_backend, fastapi_users, current_user
 from auth.schemas import UserCreate, UserRead
 # from operations.router import router as router_operation
 from orders.models import Site
-from tasks.router import router as router_tasks
-from pages.router import router as router_pages
-from chat.router import router as router_chat
+# from tasks.router import router as router_tasks
 from auth.router import router as router_auth
 from auth.roles import role, permission, Perms
 from auth.models import User, Roles
