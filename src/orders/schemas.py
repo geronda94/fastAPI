@@ -62,7 +62,6 @@ class OrderCreate(BaseModel):
     client_ip: str | None = None
 
     class Config:
-        orm_mode = True
         from_attributes = True 
         
  
@@ -130,5 +129,4 @@ class SiteRead(BaseModel):
     site_category: Optional[str] = None
 
     class Config:
-        orm_mode = True
         from_attributes = True 
