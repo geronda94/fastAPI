@@ -25,7 +25,7 @@ class Order(Base):
     
     delivery_method = Column(Enum(DeliveryMethod), nullable=True)
     
-    payment_method = Column(Enum(PaymentMethod), default=PaymentMethod.cash, nullable=False)
+    payment_method = Column(Enum(PaymentMethod), default=PaymentMethod.cash.value, nullable=False)
     payment_id = Column(Integer, nullable=True)  # ID оплаты, nullable, если нет необходимости
     
     product_name = Column(String, nullable=True)

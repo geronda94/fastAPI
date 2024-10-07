@@ -40,19 +40,19 @@ class TelegramNotification(str, Enum):
     
 class OrderCreate(BaseModel):
     site_name: str
-    order_status: OrderStatus = OrderStatus.received
-    telegram_notification: TelegramNotification = TelegramNotification.waiting
+    order_status: OrderStatus = OrderStatus.received.value
+    telegram_notification: TelegramNotification = TelegramNotification.waiting.value
     client_phone: str
     client_email: EmailStr
-    client_city:  str | None = None
-    client_address:  str | None = None
+    client_city: str | None = None
+    client_address: str | None = None
     delivery_method: Optional[DeliveryMethod] = None
     payment_method: PaymentMethod = PaymentMethod.cash
-    payment_id:  str | None = None
-    product_name:  str | None = None
-    product_type:  str | None = None
-    product_color:  str | None = None
-    product_size:  str | None = None
+    payment_id: Optional[int] = None  # Измените на Optional[int]
+    product_name: str | None = None
+    product_type: str | None = None
+    product_color: str | None = None
+    product_size: str | None = None
     product_quantity: Optional[int] = None
     price_product: float | None = None
     price_taxes: float | None = None
@@ -62,7 +62,8 @@ class OrderCreate(BaseModel):
     client_ip: str | None = None
 
     class Config:
-        from_attributes = True 
+        from_attributes = True
+
         
  
 class OrderRead(OrderCreate):
