@@ -1,2 +1,15 @@
 mp_bot.service
 fa-try
+
+
+
+модель запроса
+{
+  "site_name": "ru.ru",
+  "client_phone": "68482638",
+  "client_email": "user@example.com",
+  "client_city": "string",
+  "client_address": "string",
+  "client_name": "goga"
+
+}
