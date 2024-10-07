@@ -123,6 +123,8 @@ app.include_router(
 origins = [    
     "http://localhost",
     "https://localhost"
+    "http://localhost:5173",
+    "https://localhost:5173",
     "http://localhost:8000",
     "https://localhost:8000",
     "https://it-igor.click",
