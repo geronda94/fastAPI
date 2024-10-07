@@ -45,6 +45,8 @@ class OrderCreate(BaseModel):
     client_phone: str
     client_name: str
     client_email: EmailStr
+    client_message: str | None = None
+    type_message: str | None = None
     client_city: str | None = None
     client_address: str | None = None
     delivery_method: Optional[DeliveryMethod] = None
@@ -84,13 +86,17 @@ class OrderRead(OrderCreate):
             "Client Email": self.client_email,
             "Client City": self.client_city,
             "Client Address": self.client_address,
-
+            
             "Product Name": self.product_name,
             "Product Type": self.product_type,
             "Product Color": self.product_color,
             "Product Size": self.product_size,
             "Product quantity": self.product_quantity,
             "DateTime": formatted_date,
+            
+            "type_message": self.type_message,
+            "client_message": self.client_message,
+            
         }
 
         # Удаляем пустые значения и поля с ценами равными 0.0

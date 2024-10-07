@@ -23,6 +23,8 @@ class Order(Base):
     client_email = Column(String, nullable=True)
     client_city = Column(String, nullable=True)
     client_address = Column(String, nullable=True)
+    client_message = Column(String, nullable=True)
+    type_message = Column(String, nullable=True)
     
     delivery_method = Column(Enum(DeliveryMethod), nullable=True)
     
