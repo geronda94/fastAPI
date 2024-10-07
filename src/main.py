@@ -6,11 +6,13 @@ from fastapi.staticfiles import StaticFiles
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 from pydantic import BaseModel
-from database import redis
+from sqlalchemy import select
+from database import redis, AsyncSession, get_async_session
 
 from auth.base_config import auth_backend, fastapi_users, current_user
 from auth.schemas import UserCreate, UserRead
 # from operations.router import router as router_operation
+from orders.models import Site
 from tasks.router import router as router_tasks
 from pages.router import router as router_pages
 from chat.router import router as router_chat
@@ -19,19 +21,19 @@ from auth.roles import role, permission, Perms
 from auth.models import User, Roles
 from orders.router import router as router_orders
 
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+
+
 app = FastAPI(
-    title="Trading App"
+    title="Multi Page Service"
 )
+scheduler = AsyncIOScheduler()
 
 
 
-async def get_async_session():
-    print('Получение сессии')
-    session = 'session'
-    yield 0
-    print(' сессии')
     
-    
+
+
     
 
 def pagination_params(limit:int =10, skip:int = 0):
@@ -95,9 +97,9 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # app.include_router(router_operation)
 app.include_router(router_orders)
 app.include_router(router_auth)
-app.include_router(router_tasks)
-app.include_router(router_pages)
-app.include_router(router_chat)
+# app.include_router(router_tasks)
+# app.include_router(router_pages)
+# app.include_router(router_chat)
 app.include_router(
     fastapi_users.get_auth_router(auth_backend),
     prefix="/auth",
@@ -112,8 +114,19 @@ app.include_router(
 
 
 
-origins = [
+
+
+
+
+
+
+
+origins = [    
     "http://localhost",
+    "https://localhost"
+    "http://localhost:8000",
+    "https://localhost:8000",
+    "https://it-igor.click"
 ]
 
 app.add_middleware(
@@ -121,16 +134,41 @@ app.add_middleware(
     allow_origins=origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS", "DELETE", "PATCH", "PUT"],
-    allow_headers=["Content-Type", "Set-Cookie", "Access-Control-Allow-Headers", "Access-Control-Allow-Origin",
-                   "Authorization"],
+    allow_headers=["Content-Type", "Set-Cookie", "Access-Control-Allow-Headers", 
+                   "Access-Control-Allow-Origin", "Authorization"],
 )
+
+cached_sites = {}
+
+async def cache_sites(session: AsyncSession):
+    result = await session.execute(select(Site))  # Предполагаем, что у вас есть модель Site
+    sites = result.scalars().all()
+    return {site.site_name: site for site in sites}  # Возвращаем кэш как словарь
+
+async def update_cache():
+    async for session in get_async_session():  # Получаем сессию
+        global cached_sites
+        cached_sites = await cache_sites(session)  # Обновляем кэш
+        break  # Прерываем цикл после получения первой сессии
+
+async def update_origins():
+    global origins
+    await update_cache()  # Обновляем кэш
+
+    # Обновляем список origins на основе кэшированных сайтов
+    new_origins = [f"{protocol}://{site.site_name}" for site in cached_sites.values() for protocol in ["http", "https"]]
+
+    for new_origin in new_origins:
+        if new_origin not in origins:
+            origins.append(new_origin)
+
 
 @app.on_event("startup")
 async def startup_event():
-    
-    FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
-    
-    
-@app.get('/items')
-async def get_items(session=Depends(get_async_session)):
-    return [{"id":session}]
+    await update_origins()  # Обновляем origins при запуске
+    scheduler.add_job(update_origins, 'interval', minutes=2) 
+    scheduler.start()
+
+@app.get('/origins')
+async def get_origins():
+    return origins  # Возвращаем текущий список origins

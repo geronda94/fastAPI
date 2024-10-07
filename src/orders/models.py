@@ -1,7 +1,7 @@
-from sqlalchemy import Column, Integer, String, TIMESTAMP, Enum, Float, Text, ForeignKey, JSON
+from sqlalchemy import Column, Integer, String, TIMESTAMP, Enum, Float, Text, ForeignKey, JSON, BIGINT
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from orders.schemas import OrderStatus, DeliveryMethod, PaymentMethod, OrderUpdateStatus
+from orders.schemas import OrderStatus, DeliveryMethod, PaymentMethod, OrderUpdateStatus, TelegramNotification
 from auth.models import User
 from database import Base
 
@@ -15,10 +15,12 @@ class Order(Base):
     site_name = Column(String, ForeignKey('sites.site_name'), nullable=False)  # Привязка к таблице sites
     
     order_status = Column(Enum(OrderStatus), default=OrderStatus.received, nullable=False)
-
+    telegram_notification = Column(Enum(TelegramNotification), default=TelegramNotification.waiting, nullable=False)
+    
+    
     client_phone = Column(String, nullable=False)
     client_email = Column(String, nullable=True)
-    client_city = Column(String, nullable=False)
+    client_city = Column(String, nullable=True)
     client_address = Column(String, nullable=True)
     
     delivery_method = Column(Enum(DeliveryMethod), nullable=True)
@@ -26,13 +28,13 @@ class Order(Base):
     payment_method = Column(Enum(PaymentMethod), default=PaymentMethod.cash, nullable=False)
     payment_id = Column(Integer, nullable=True)  # ID оплаты, nullable, если нет необходимости
     
-    product_name = Column(String, nullable=False)
+    product_name = Column(String, nullable=True)
     product_type = Column(String, nullable=True)
     product_color = Column(String, nullable=True)
     product_size = Column(String, nullable=True)
     product_quantity = Column(Integer, nullable=True)
 
-    price_product = Column(Float, nullable=False)
+    price_product = Column(Float, nullable=True)
     price_taxes = Column(Float, nullable=True)
     price_delivery = Column(Float, nullable=True)
     price_total = Column(Float, nullable=True)
@@ -49,12 +51,12 @@ class Site(Base):
     
     id = Column(Integer, primary_key=True)
     site_name = Column(String, unique=True, nullable=False)
-    site_domain = Column(String, unique=True, nullable=False)
+    site_domain = Column(String, nullable=True)
     site_owner = Column(Integer)  # Связь с пользователем (User.id)
     owner_telegram = Column(String, nullable=True)  # Телеграм ID владельца сайта
     site_description = Column(String, nullable=True)
     site_category = Column(String, nullable=True)
-    
+        
     orders = relationship('Order', back_populates='site')  # Связь с таблицей orders
 
 

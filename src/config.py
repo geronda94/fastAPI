@@ -23,3 +23,5 @@ SECRET_AUTH = os.environ.get("SECRET_AUTH")
 
 SMTP_USERNAME=os.environ.get('SMTP_USERNAME')
 SMTP_PASSWORD=os.environ.get('SMTP_PASSWORD')
+
+TG_TOKEN=os.environ.get('TG_TOKEN')
