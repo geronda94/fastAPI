@@ -206,7 +206,7 @@ async def check_orders(bot: Bot):
                             # Если не удалось отправить сообщение, обновляем статус на ошибку
                             stmt = update(Order).where(Order.id == order.id).values(telegram_notification=TelegramNotification.delivered)
                             await session.execute(stmt)
-                            await bot.send_message(SUPER_ADMIN, text=f'Не удалось отправить сообщение владельцу {owner_telegram_id}: {send_ex}')
+
                     else:
                         # Если ID отсутствует, обновляем статус заказа
                         stmt = update(Order).where(Order.id == order.id).values(telegram_notification=TelegramNotification.delivered)
