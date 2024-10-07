@@ -125,7 +125,10 @@ origins = [
     "https://localhost"
     "http://localhost:8000",
     "https://localhost:8000",
-    "https://it-igor.click"
+    "https://it-igor.click",
+    "null",
+    "http://127.0.0.1",
+    "https://127.0.0.1",
 ]
 
 app.add_middleware(
