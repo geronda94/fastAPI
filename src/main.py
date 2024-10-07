@@ -25,7 +25,8 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 
 app = FastAPI(
-    title="Multi Page Service"
+    title="Multi Page Service",
+    openapi_prefix="/api"
 )
 scheduler = AsyncIOScheduler()
 
