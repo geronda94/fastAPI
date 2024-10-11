@@ -1,4 +1,6 @@
 import json
+
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from typing import Any
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -8,7 +10,7 @@ from fastapi_cache.backends.redis import RedisBackend
 import httpx
 from pydantic import BaseModel
 from sqlalchemy import select
-from database import redis, AsyncSession, get_async_session
+from database import redis, AsyncSession, get_async_session, sync_engine
 
 from auth.base_config import auth_backend, fastapi_users, current_user
 from auth.schemas import UserCreate, UserRead
@@ -29,6 +31,10 @@ app = FastAPI(
     openapi_prefix="/api"
 )
 scheduler = AsyncIOScheduler()
+
+
+
+
 
 
 
@@ -109,7 +115,7 @@ async def get_payments(request: Request,
 
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
-
+# app.mount("/admin", admin)
 
 # app.include_router(router_operation)
 app.include_router(router_orders)

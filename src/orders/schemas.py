@@ -44,12 +44,12 @@ class OrderCreate(BaseModel):
     telegram_notification: TelegramNotification = TelegramNotification.waiting.value
     client_phone: str
     client_name: str
-    client_email: EmailStr
+    client_email: EmailStr | None = None
     client_message: str | None = None
     type_message: str | None = None
     client_city: str | None = None
     client_address: str | None = None
-    delivery_method: Optional[DeliveryMethod] = None
+    delivery_method: Optional[DeliveryMethod] | None = None
     payment_method: PaymentMethod = PaymentMethod.cash
     payment_id: Optional[int] = None  # Измените на Optional[int]
     product_name: str | None = None
