@@ -30,7 +30,8 @@ from aiogram.filters import StateFilter
 #Блок инициализации#############################
 
 TOKEN = TG_TOKEN
-SUPER_ADMIN = '6857394634'
+SUPER_ADMIN = 6857394634
+
 
 ################################################
 
