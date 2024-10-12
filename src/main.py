@@ -155,6 +155,8 @@ origins = [
     "null",
     "http://127.0.0.1",
     "https://127.0.0.1",
+    "http://multi-page.shop",
+    "https://multi-page.shop",
 ]
 
 app.add_middleware(
