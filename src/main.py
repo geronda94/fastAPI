@@ -10,7 +10,7 @@ from fastapi_cache.backends.redis import RedisBackend
 import httpx
 from pydantic import BaseModel
 from sqlalchemy import select
-from database import redis, AsyncSession, get_async_session, sync_engine
+from database import redis, AsyncSession, get_async_session
 
 from auth.base_config import auth_backend, fastapi_users, current_user
 from auth.schemas import UserCreate, UserRead
@@ -24,7 +24,7 @@ from orders.router import router as router_orders
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from config import CAPTCHA_SECRET
-
+from admin import admin
 
 app = FastAPI(
     title="Multi Page Service",
@@ -33,96 +33,49 @@ app = FastAPI(
 scheduler = AsyncIOScheduler()
 
 
+# admin.mount_to(app)
 
 
 
-
-
-@app.post("/verify-recaptcha")
-async def verify_recaptcha(token: str):
-    payload = {
-        'secret': CAPTCHA_SECRET,
-        'response': token
-    }
+# @app.post("/verify-recaptcha")
+# async def verify_recaptcha(token: str):
+#     payload = {
+#         'secret': CAPTCHA_SECRET,
+#         'response': token
+#     }
     
-    async with httpx.AsyncClient() as client:
-        response = await client.post('https://www.google.com/recaptcha/api/siteverify', data=payload)
-        result = response.json()
+#     async with httpx.AsyncClient() as client:
+#         response = await client.post('https://www.google.com/recaptcha/api/siteverify', data=payload)
+#         result = response.json()
     
-    if result.get("success"):
-        score = result.get("score", 0)
-        return {"score": score}
-    else:
-        raise HTTPException(status_code=400, detail="reCAPTCHA verification failed")
-    
-
-
+#     if result.get("success"):
+#         score = result.get("score", 0)
+#         return {"score": score}
+#     else:
+#         raise HTTPException(status_code=400, detail="reCAPTCHA verification failed")
     
 
-def pagination_params(limit:int =10, skip:int = 0):
-    return {"limit":limit, 'skip':skip}
 
-
-pagination = Depends(pagination_params)
-
-class Paginator:
-    def __init__(self, limit:int =10, skip:int = 0):
-        self.limit = limit
-        self.skip = skip
-
-pg_class = Paginator(2,3)
-
-
-@app.get('/subject-class')
-@role([Roles.admin])
-async def get_subject(user: User = Depends(current_user),
-                pagination_params: Paginator = Depends()
-                ):
-    return pagination_params
-
-
-
-@app.get('/subject')
-@permission([Perms.READ])
-async def get_subject(user: User = Depends(current_user),
-                      pagination_params: dict = pagination):
-    return pagination_params
-
-
-class AuthGuard:
-    def __init__(self, app: str):
-        self.app = app
-        
-    def __call__(self, request: Request) -> Any:
-        if 'bonds' not in request.cookies:
-            raise HTTPException(status_code=403, detail='Запрещено!')
-        
-        return True 
-     
-auth_guard_payments = AuthGuard('payments')
-
-@app.get('/get_payments', dependencies=[Depends(auth_guard_payments)])
-@role([Roles.admin])
-async def get_payments(request: Request, 
-                       auth_guard_payments: AuthGuard = Depends(auth_guard_payments),
-                       user: User = Depends(current_user)
-                       ):
-    return request.client
+    
 
 
 
 
 
 
+# @app.get("/admin-panel")
+# @role([Roles.admin.value])
+# async def admin_panel():
+#     return {"message": "Welcome to the admin panel"}
+
+
+
+
+app.mount("/admin", admin)
 app.mount("/static", StaticFiles(directory="static"), name="static")
-# app.mount("/admin", admin)
 
-# app.include_router(router_operation)
-app.include_router(router_orders)
 app.include_router(router_auth)
-# app.include_router(router_tasks)
-# app.include_router(router_pages)
-# app.include_router(router_chat)
+
 app.include_router(
     fastapi_users.get_auth_router(auth_backend),
     prefix="/auth",
@@ -151,12 +104,7 @@ origins = [
     "https://localhost:5173",
     "http://localhost:8000",
     "https://localhost:8000",
-    "https://it-igor.click",
     "null",
-    "http://127.0.0.1",
-    "https://127.0.0.1",
-    "http://multi-page.shop",
-    "https://multi-page.shop",
 ]
 
 app.add_middleware(
@@ -168,37 +116,10 @@ app.add_middleware(
                    "Access-Control-Allow-Origin", "Authorization"],
 )
 
-cached_sites = {}
 
-async def cache_sites(session: AsyncSession):
-    result = await session.execute(select(Site))  # Предполагаем, что у вас есть модель Site
-    sites = result.scalars().all()
-    return {site.site_name: site for site in sites}  # Возвращаем кэш как словарь
-
-async def update_cache():
-    async for session in get_async_session():  # Получаем сессию
-        global cached_sites
-        cached_sites = await cache_sites(session)  # Обновляем кэш
-        break  # Прерываем цикл после получения первой сессии
-
-async def update_origins():
-    global origins
-    await update_cache()  # Обновляем кэш
-
-    # Обновляем список origins на основе кэшированных сайтов
-    new_origins = [f"{protocol}://{site.site_name}" for site in cached_sites.values() for protocol in ["http", "https"]]
-
-    for new_origin in new_origins:
-        if new_origin not in origins:
-            origins.append(new_origin)
 
 
 @app.on_event("startup")
 async def startup_event():
-    await update_origins()  # Обновляем origins при запуске
-    scheduler.add_job(update_origins, 'interval', minutes=2) 
     scheduler.start()
 
-@app.get('/origins')
-async def get_origins():
-    return origins  # Возвращаем текущий список origins

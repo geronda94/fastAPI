@@ -72,18 +72,13 @@ class User(BasePermissions):
         Perms.READ_USERS,
     }
 
-class Guest(BasePermissions):
-    permissions = {
-        Perms.READ,
-    }
-
 
 class RoleManager:
     roles_mapping = {
         Roles.admin: Admin,
         Roles.moderator: Moderator,
         Roles.user: User,
-        Roles.guest: Guest,
+
     }
 
     @staticmethod
