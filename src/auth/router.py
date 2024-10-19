@@ -20,7 +20,6 @@ async def get_permissions(user: User = Depends(current_user)):
 
 
 @router.get("/me", response_model=UserRead)
-@permission([Perms.CREATE_USERS, Perms.READ_USERS])
 async def read_current_user(user: User = Depends(current_user)
                             ):
     return user

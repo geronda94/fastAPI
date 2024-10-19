@@ -15,16 +15,16 @@ from database import redis, AsyncSession, get_async_session
 from auth.base_config import auth_backend, fastapi_users, current_user
 from auth.schemas import UserCreate, UserRead
 # from operations.router import router as router_operation
-from orders.models import Site
+
 # from tasks.router import router as router_tasks
 from auth.router import router as router_auth
 from auth.roles import role, permission, Perms
 from auth.models import User, Roles
-from orders.router import router as router_orders
+
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from config import CAPTCHA_SECRET
-from admin import admin
+
 
 app = FastAPI(
     title="Multi Page Service",
@@ -33,7 +33,7 @@ app = FastAPI(
 scheduler = AsyncIOScheduler()
 
 
-# admin.mount_to(app)
+
 
 
 
@@ -71,7 +71,7 @@ scheduler = AsyncIOScheduler()
 
 
 
-app.mount("/admin", admin)
+
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 app.include_router(router_auth)
