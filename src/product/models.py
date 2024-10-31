@@ -85,8 +85,7 @@ class Product(Base):
     description_tr = Column(Text, nullable=True)
     price = Column(Integer, nullable=False)
     sale = Column(Boolean, default=False)
-    discount_value = Column(Integer, nullable=True)
-    
+    discount_value = Column(Integer, nullable=True)  
     
 
      # Поля для хранения ссылок на аватар, слайды и видео

@@ -22,6 +22,8 @@ from auth.roles import role, permission, Perms
 from auth.models import User, Roles
 
 
+from file.router import router as router_file
+
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from config import CAPTCHA_SECRET
 
@@ -75,6 +77,7 @@ scheduler = AsyncIOScheduler()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 app.include_router(router_auth)
+app.include_router(router_file)
 
 app.include_router(
     fastapi_users.get_auth_router(auth_backend),
