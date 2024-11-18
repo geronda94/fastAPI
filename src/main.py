@@ -18,6 +18,7 @@ from auth.schemas import UserCreate, UserRead
 
 # from tasks.router import router as router_tasks
 from auth.router import router as router_auth
+from product.router import router as router_product
 from auth.roles import role, permission, Perms
 from auth.models import User, Roles
 
@@ -78,6 +79,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 app.include_router(router_auth)
 app.include_router(router_file)
+app.include_router(router_product)
 
 app.include_router(
     fastapi_users.get_auth_router(auth_backend),
