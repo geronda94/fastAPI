@@ -25,7 +25,7 @@ async def add_product(product_data: ProductCreate, db: AsyncSession = Depends(ge
         raise HTTPException(status_code=404, detail="Category not found")
     
     # Создание нового продукта
-    new_product = Product(**product_data.dict())
+    new_product = Product(**product_data.model_dump())
     
     # Сохранение в базе данных
     try:
