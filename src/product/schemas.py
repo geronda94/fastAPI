@@ -13,7 +13,9 @@ class BaseCategory(BaseModel):
     description_tr: Optional[str]
     is_available: Optional[bool] = True
     code: Optional[str]
-
+    
+    class Config:
+        orm_mode = True
 
 class BaseProduct(BaseModel):
     title_en: str
@@ -29,6 +31,9 @@ class BaseProduct(BaseModel):
     price: int
     sale: Optional[bool] = False
     discount_value: Optional[int]
+    
+    class Config:
+        orm_mode = True
 
 
 class BaseProductColor(BaseModel):
@@ -38,6 +43,9 @@ class BaseProductColor(BaseModel):
     slides: Optional[str]
     video: Optional[str]
     is_available: Optional[bool] = True
+    
+    class Config:
+        orm_mode = True
 
 
 class BaseSize(BaseModel):
