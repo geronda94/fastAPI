@@ -10,11 +10,9 @@ class Category(Base):
     title_en = Column(String, nullable=False)
     title_ru = Column(String, nullable=False)
     title_ua = Column(String, nullable=False)
-    title_tr = Column(String, nullable=False)
     description_en = Column(Text, nullable=True)
     description_ru = Column(Text, nullable=True)
     description_ua = Column(Text, nullable=True)
-    description_tr = Column(Text, nullable=True)
     is_available = Column(Boolean, default=True)
     code = Column(String, nullable=True)
 
@@ -25,20 +23,20 @@ class Product(Base):
     __tablename__ = 'products'
 
     id = Column(Integer, primary_key=True, index=True)
-    title_en = Column(String, nullable=False)
+    title_en = Column(String, nullable=True)
     title_ru = Column(String, nullable=True)
-    title_ua = Column(String, nullable=True)
-    title_tr = Column(String, nullable=True)
+    title_ua = Column(String, nullable=False)
     is_available = Column(Boolean, default=True)
     code = Column(String, nullable=True)
+    id_crm = Column(String, nullable=True)
     description_en = Column(Text, nullable=True)
     description_ru = Column(Text, nullable=True)
     description_ua = Column(Text, nullable=True)
-    description_tr = Column(Text, nullable=True)
     price = Column(Integer, nullable=False)
-    sale = Column(Boolean, default=False)
+    sale = Column(Boolean, default=True)
     discount_value = Column(Integer, nullable=True)
-
+    avatar = Column(String, nullable=True)  # URL аватара
+    slides = Column(String, nullable=True)  # URL слайдов (через запятую)
     category_id = Column(Integer, ForeignKey('categories.id'))
     category = relationship("Category", back_populates="products")
 
@@ -53,7 +51,6 @@ class ProductColor(Base):
     color_id = Column(Integer, ForeignKey('colors.id'), nullable=False)
     avatar = Column(String, nullable=True)  # URL аватара
     slides = Column(String, nullable=True)  # URL слайдов (через запятую)
-    video = Column(String, nullable=True)  # URL видео
     is_available = Column(Boolean, default=True)
 
     product = relationship("Product", back_populates="product_colors")

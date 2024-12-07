@@ -6,11 +6,9 @@ class BaseCategory(BaseModel):
     title_en: str
     title_ru: str
     title_ua: str
-    title_tr: str
     description_en: Optional[str]
     description_ru: Optional[str]
     description_ua: Optional[str]
-    description_tr: Optional[str]
     is_available: Optional[bool] = True
     code: Optional[str]
     
@@ -21,13 +19,14 @@ class BaseProduct(BaseModel):
     title_en: str
     title_ru: Optional[str]
     title_ua: Optional[str]
-    title_tr: Optional[str]
     is_available: Optional[bool] = True
     code: Optional[str]
+    id_crm: Optional[str]
     description_en: Optional[str]
     description_ru: Optional[str]
     description_ua: Optional[str]
-    description_tr: Optional[str]
+    avatar: Optional[str]
+    slides: Optional[str]
     price: int
     sale: Optional[bool] = False
     discount_value: Optional[int]
@@ -41,7 +40,6 @@ class BaseProductColor(BaseModel):
     color_id: int
     avatar: Optional[str]
     slides: Optional[str]
-    video: Optional[str]
     is_available: Optional[bool] = True
     
     class Config:
@@ -94,6 +92,7 @@ class CategoryRead(BaseCategory):
 class ProductRead(BaseProduct):
     id: int
     category_id: int
+    colors: List['ProductColorRead'] = []  # Поле colors как список объектов
 
     class Config:
         orm_mode = True
@@ -101,9 +100,11 @@ class ProductRead(BaseProduct):
 
 class ProductColorRead(BaseProductColor):
     id: int
+    sizes: List['ProductSizeRead'] = []  # Список размеров, связанных с цветом
 
     class Config:
         orm_mode = True
+
 
 
 class SizeRead(BaseSize):
