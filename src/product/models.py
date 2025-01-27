@@ -1,7 +1,6 @@
-from sqlalchemy import Column, ForeignKey, String, Boolean, Integer, Text
+from sqlalchemy import Column, ForeignKey, String, Boolean, Integer, Text, JSON
 from sqlalchemy.orm import relationship
 from database import Base
-
 
 class Category(Base):
     __tablename__ = 'categories'
@@ -32,8 +31,8 @@ class Product(Base):
     description_en = Column(Text, nullable=True)
     description_ru = Column(Text, nullable=True)
     description_ua = Column(Text, nullable=True)
-    price = Column(Integer, nullable=False)
-    sale = Column(Boolean, default=True)
+    price = Column(Integer, nullable=False)  # Цена (оставлено как Integer)
+    sale = Column(Boolean, default=False)
     discount_value = Column(Integer, nullable=True)
     avatar = Column(String, nullable=True)  # URL аватара
     slides = Column(String, nullable=True)  # URL слайдов (через запятую)
@@ -52,10 +51,9 @@ class ProductColor(Base):
     avatar = Column(String, nullable=True)  # URL аватара
     slides = Column(String, nullable=True)  # URL слайдов (через запятую)
     is_available = Column(Boolean, default=True)
-
+    sizes = Column(JSON, nullable=True)  # Список доступных размеров (массив идентификаторов из таблицы Sizes)
     product = relationship("Product", back_populates="product_colors")
     color = relationship("Color", back_populates="product_colors")
-    product_sizes = relationship("ProductSize", back_populates="product_color")
 
 
 class Color(Base):
@@ -72,21 +70,21 @@ class Size(Base):
     __tablename__ = 'sizes'
 
     id = Column(Integer, primary_key=True, index=True)
-    value = Column(String, nullable=False)  # Название или значение размера
-
-    product_sizes = relationship("ProductSize", back_populates="size")
+    value = Column(String, nullable=False)  # Название размера
 
 
-class ProductSize(Base):
-    __tablename__ = 'product_sizes'
 
-    id = Column(Integer, primary_key=True, index=True)
-    product_color_id = Column(Integer, ForeignKey('product_colors.id'), nullable=False)
-    size_id = Column(Integer, ForeignKey('sizes.id'), nullable=False)
-    quantity = Column(Integer, nullable=False)  # Количество
 
-    product_color = relationship("ProductColor", back_populates="product_sizes")
-    size = relationship("Size", back_populates="product_sizes")
+# class Stock(Base):  # Эта таблица будет использоваться позже для хранения остатков
+#     __tablename__ = 'stocks'
+
+#     id = Column(Integer, primary_key=True, index=True)
+#     product_color_id = Column(Integer, ForeignKey('product_colors.id'), nullable=False)
+#     size_id = Column(Integer, ForeignKey('sizes.id'), nullable=False)
+#     quantity = Column(Integer, nullable=False)  # Количество товара на складе
+
+#     product_color = relationship("ProductColor", back_populates="stocks")
+#     size = relationship("Size", back_populates="stocks")
 
 
 class Order(Base):
@@ -96,12 +94,10 @@ class Order(Base):
     name = Column(String, nullable=False)
     email = Column(String, nullable=False)
     phone = Column(String, nullable=False)
-    order_status = Column(String, nullable=False)  # Enum mapping can be added
+    order_status = Column(String, nullable=False)  # Статус заказа (можно добавить Enum позже, если нужно)
     country = Column(String, nullable=True)
     city = Column(String, nullable=True)
     address = Column(String, nullable=True)
-    delivery_method = Column(String, nullable=False)  # Enum mapping can be added
-    payment_method = Column(String, nullable=False)  # Enum mapping can be added
     total_price = Column(Integer, nullable=False)
 
     order_items = relationship("OrderItem", back_populates="order")
@@ -112,8 +108,7 @@ class OrderItem(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     product_id = Column(Integer, ForeignKey('products.id'))
-    product_color_id = Column(Integer, ForeignKey('product_colors.id'))  # Изменено на связь с `ProductColor`
-    product_syze_id = Column(Integer, ForeignKey('product_sizes.id'))  # Изменено на связь с `ProductColor`
+    product_color_id = Column(Integer, ForeignKey('product_colors.id'))  # Связь с ProductColor
     quantity = Column(Integer, nullable=False)
     price_per_unit = Column(Integer, nullable=False)
     order_id = Column(Integer, ForeignKey('orders.id'))

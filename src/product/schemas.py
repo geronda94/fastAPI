@@ -1,5 +1,14 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from typing import Optional, List
+
+# Базовые схемы
+class BaseStock(BaseModel):
+    product_color_id: int
+    size_id: int
+    quantity: int
+
+    class Config:
+        orm_mode = True
 
 
 class BaseCategory(BaseModel):
@@ -11,9 +20,10 @@ class BaseCategory(BaseModel):
     description_ua: Optional[str]
     is_available: Optional[bool] = True
     code: Optional[str]
-    
+
     class Config:
         orm_mode = True
+
 
 class BaseProduct(BaseModel):
     title_en: str
@@ -30,7 +40,7 @@ class BaseProduct(BaseModel):
     price: int
     sale: Optional[bool] = False
     discount_value: Optional[int]
-    
+
     class Config:
         orm_mode = True
 
@@ -41,7 +51,7 @@ class BaseProductColor(BaseModel):
     avatar: Optional[str]
     slides: Optional[str]
     is_available: Optional[bool] = True
-    
+
     class Config:
         orm_mode = True
 
@@ -49,37 +59,16 @@ class BaseProductColor(BaseModel):
 class BaseSize(BaseModel):
     value: str
 
-
-class BaseProductSize(BaseModel):
-    product_color_id: int
-    size_id: int
-    quantity: int
+    class Config:
+        orm_mode = True
 
 
-class BaseOrder(BaseModel):
-    name: str
-    email: str
-    phone: str
-    order_status: str
-    country: Optional[str]
-    city: Optional[str]
-    address: Optional[str]
-    delivery_method: str
-    payment_method: str
-    total_price: int
+# Read-схемы
+class StockRead(BaseStock):
+    id: int
 
-
-class BaseOrderItem(BaseModel):
-    product_id: int
-    product_color_id: int
-    product_syze_id: int
-    quantity: int
-    price_per_unit: int
-    order_id: int
-
-
-
-
+    class Config:
+        orm_mode = True
 
 
 class CategoryRead(BaseCategory):
@@ -89,18 +78,48 @@ class CategoryRead(BaseCategory):
         orm_mode = True
 
 
-class ProductRead(BaseProduct):
+
+
+class ProductColorSizeRead(BaseModel):
     id: int
-    category_id: int
-    colors: List['ProductColorRead'] = []  # Поле colors как список объектов
+    value: str
+    quantity: int
 
     class Config:
         orm_mode = True
 
 
-class ProductColorRead(BaseProductColor):
+class ProductColorRead(BaseModel):
     id: int
-    sizes: List['ProductSizeRead'] = []  # Список размеров, связанных с цветом
+    color_id: int 
+    name: str
+    avatar: Optional[str] = None
+    slides: Optional[str] = None
+    is_available: Optional[bool] = None
+    sizes: List[int] = []
+
+    class Config:
+        orm_mode = True
+
+# Основная модель для продукта
+class ProductRead(BaseModel):
+    id: int
+    category_id: int
+    title_en: str
+    title_ru: str
+    title_ua: str
+    is_available: bool
+    avatar: Optional[str] = None
+    slides: Optional[str] = None
+    code: str
+    id_crm: Optional[str] = None
+    description_en: Optional[str] = None
+    description_ru: Optional[str] = None
+    description_ua: Optional[str] = None
+    price: float
+    sale: Optional[float] = 0.0
+    discount_value: Optional[float] = 0.0
+    colors: List[ProductColorRead] = []
 
     class Config:
         orm_mode = True
@@ -114,30 +133,9 @@ class SizeRead(BaseSize):
         orm_mode = True
 
 
-class ProductSizeRead(BaseProductSize):
-    id: int
-
-    class Config:
-        orm_mode = True
-
-
-class OrderRead(BaseOrder):
-    id: int
-
-    class Config:
-        orm_mode = True
-
-
-class OrderItemRead(BaseOrderItem):
-    id: int
-
-    class Config:
-        orm_mode = True
-
-
-
-
-
+# Create-схемы
+class StockCreate(BaseStock):
+    pass
 
 
 class CategoryCreate(BaseCategory):
@@ -156,34 +154,20 @@ class SizeCreate(BaseSize):
     pass
 
 
-class ProductSizeCreate(BaseProductSize):
-    pass
-
-
-class OrderCreate(BaseOrder):
-    pass
-
-
-class OrderItemCreate(BaseOrderItem):
-    pass
-
-
-
-
-
-
-
+# Update-схемы
+class StockUpdate(BaseStock):
+    product_color_id: Optional[int]
+    size_id: Optional[int]
+    quantity: Optional[int]
 
 
 class CategoryUpdate(BaseCategory):
     title_en: Optional[str]
     title_ru: Optional[str]
     title_ua: Optional[str]
-    title_tr: Optional[str]
     description_en: Optional[str]
     description_ru: Optional[str]
     description_ua: Optional[str]
-    description_tr: Optional[str]
     is_available: Optional[bool]
     code: Optional[str]
 
@@ -192,13 +176,11 @@ class ProductUpdate(BaseProduct):
     title_en: Optional[str]
     title_ru: Optional[str]
     title_ua: Optional[str]
-    title_tr: Optional[str]
     is_available: Optional[bool]
     code: Optional[str]
     description_en: Optional[str]
     description_ru: Optional[str]
     description_ua: Optional[str]
-    description_tr: Optional[str]
     price: Optional[int]
     sale: Optional[bool]
     discount_value: Optional[int]
@@ -210,37 +192,9 @@ class ProductColorUpdate(BaseProductColor):
     color_id: Optional[int]
     avatar: Optional[str]
     slides: Optional[str]
-    video: Optional[str]
     is_available: Optional[bool]
 
 
 class SizeUpdate(BaseSize):
     value: Optional[str]
 
-
-class ProductSizeUpdate(BaseProductSize):
-    product_color_id: Optional[int]
-    size_id: Optional[int]
-    quantity: Optional[int]
-
-
-class OrderUpdate(BaseOrder):
-    name: Optional[str]
-    email: Optional[str]
-    phone: Optional[str]
-    order_status: Optional[str]
-    country: Optional[str]
-    city: Optional[str]
-    address: Optional[str]
-    delivery_method: Optional[str]
-    payment_method: Optional[str]
-    total_price: Optional[int]
-
-
-class OrderItemUpdate(BaseOrderItem):
-    product_id: Optional[int]
-    product_color_id: Optional[int]
-    product_syze_id: Optional[int]
-    quantity: Optional[int]
-    price_per_unit: Optional[int]
-    order_id: Optional[int]
