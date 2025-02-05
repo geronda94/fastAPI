@@ -1,47 +1,123 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 from typing import Optional, List
+
+#
+
+
+
+class ProductColorRead(BaseModel):
+    id: int
+    color_id: int 
+    name: Optional[str] = None
+    slides: Optional[str] = None
+    is_available: Optional[bool] = None
+    sizes: List[int] = []
+
+    class Config:
+        orm_mode = True
+        
+        
+class BaseStock(BaseModel):
+    product_color_id: int
+    size_id: int
+    quantity: int
+
+    class Config:
+        orm_mode = True
 
 
 class BaseCategory(BaseModel):
-    title_en: str
-    title_ru: str
+    title_en: Optional[str] = None
+    title_ru: Optional[str] = None
     title_ua: str
-    description_en: Optional[str]
-    description_ru: Optional[str]
+    description_en: Optional[str] = None
+    description_ru: Optional[str] = None
     description_ua: Optional[str]
     is_available: Optional[bool] = True
     code: Optional[str]
-    
+
     class Config:
         orm_mode = True
 
+
 class BaseProduct(BaseModel):
-    title_en: str
-    title_ru: Optional[str]
-    title_ua: Optional[str]
+    title_en: Optional[str] = None
+    title_ru: Optional[str] = None
+    title_ua: str
     is_available: Optional[bool] = True
-    code: Optional[str]
-    id_crm: Optional[str]
-    description_en: Optional[str]
-    description_ru: Optional[str]
-    description_ua: Optional[str]
-    avatar: Optional[str]
-    slides: Optional[str]
+    code: Optional[str] = None
+    id_crm: Optional[str] = None
+    description_en: Optional[str] = None
+    description_ru: Optional[str] = None
+    description_ua: Optional[str] = None
+    avatar: Optional[str] = None
+    video: Optional[str] = None
     price: int
     sale: Optional[bool] = False
-    discount_value: Optional[int]
+    discount_value: Optional[int] = None
+    size_chart_id: Optional[int] = None
     
+
     class Config:
         orm_mode = True
+
+
+# Основная модель для продукта
+class ProductRead(BaseModel):
+    id: int
+    category_id: int
+    title_en: Optional[str] = None
+    title_ru: Optional[str] = None
+    title_ua: str
+    is_available: bool
+    avatar: Optional[str] = None
+    video: Optional[str] = None
+    code: str
+    id_crm: Optional[str] = None
+    description_en: Optional[str] = None
+    description_ru: Optional[str] = None
+    description_ua: Optional[str] = None
+    price: float
+    sale: Optional[bool]
+    discount_value: Optional[float] = 0.0
+    colors: List[ProductColorRead] = []
+    size_chart_id: Optional[int] = None
+
+    class Config:
+        orm_mode = True
+        
+        
+class ProductCreate(BaseProduct):
+    category_id: int
+
+
+class ProductUpdate(BaseProduct):
+    title_en: Optional[str] = None
+    title_ru: Optional[str] = None
+    title_ua: Optional[str] = None
+    is_available: Optional[bool] = None
+    code: Optional[str] = None
+    description_en: Optional[str] = None
+    description_ru: Optional[str] = None
+    description_ua: Optional[str] = None
+    price: Optional[int] = None
+    sale: Optional[bool] = None
+    discount_value: Optional[int] = None
+    category_id: Optional[int] = None
+    size_chart_id: Optional[int] = None
+    
+    class Config:
+        orm_mode = True        
+
+
 
 
 class BaseProductColor(BaseModel):
     product_id: int
     color_id: int
-    avatar: Optional[str]
-    slides: Optional[str]
+    slides: Optional[str] = None
     is_available: Optional[bool] = True
-    
+
     class Config:
         orm_mode = True
 
@@ -49,37 +125,16 @@ class BaseProductColor(BaseModel):
 class BaseSize(BaseModel):
     value: str
 
-
-class BaseProductSize(BaseModel):
-    product_color_id: int
-    size_id: int
-    quantity: int
+    class Config:
+        orm_mode = True
 
 
-class BaseOrder(BaseModel):
-    name: str
-    email: str
-    phone: str
-    order_status: str
-    country: Optional[str]
-    city: Optional[str]
-    address: Optional[str]
-    delivery_method: str
-    payment_method: str
-    total_price: int
+# Read-схемы
+class StockRead(BaseStock):
+    id: int
 
-
-class BaseOrderItem(BaseModel):
-    product_id: int
-    product_color_id: int
-    product_syze_id: int
-    quantity: int
-    price_per_unit: int
-    order_id: int
-
-
-
-
+    class Config:
+        orm_mode = True
 
 
 class CategoryRead(BaseCategory):
@@ -89,158 +144,200 @@ class CategoryRead(BaseCategory):
         orm_mode = True
 
 
-class ProductRead(BaseProduct):
+
+
+class ProductColorSizeRead(BaseModel):
     id: int
-    category_id: int
-    colors: List['ProductColorRead'] = []  # Поле colors как список объектов
+    value: str
+    quantity: int
 
     class Config:
         orm_mode = True
 
 
-class ProductColorRead(BaseProductColor):
-    id: int
-    sizes: List['ProductSizeRead'] = []  # Список размеров, связанных с цветом
+
+        
+        
+        
+        
+        
+class ProductColorUpdate(BaseModel):
+    color_id: int 
+    slides: Optional[str] = None
+    is_available: Optional[bool] = None
+    sizes: List[int] 
 
     class Config:
         orm_mode = True
 
+    @validator('sizes', pre=True)
+    def parse_sizes(cls, value):
+        if isinstance(value, str):
+            try:
+                # Попробуем преобразовать строку в список
+                return list(map(int, value.split(',')))
+            except ValueError:
+                raise ValueError("Invalid format for sizes. Expected a list of integers.")
+        elif isinstance(value, list):
+            # Если уже список, проверим, что все элементы — числа
+            if not all(isinstance(i, int) for i in value):
+                raise ValueError("Invalid format for sizes. Expected a list of integers.")
+            return value
+        raise ValueError("Invalid format for sizes. Expected a list of integers.")
+
+    class Config:
+        orm_mode = True
 
 
 class SizeRead(BaseSize):
     id: int
+    value: str
 
     class Config:
         orm_mode = True
 
 
-class ProductSizeRead(BaseProductSize):
-    id: int
-
-    class Config:
-        orm_mode = True
-
-
-class OrderRead(BaseOrder):
-    id: int
-
-    class Config:
-        orm_mode = True
-
-
-class OrderItemRead(BaseOrderItem):
-    id: int
-
-    class Config:
-        orm_mode = True
-
-
-
-
-
+# Create-схемы
+class StockCreate(BaseStock):
+    pass
 
 
 class CategoryCreate(BaseCategory):
     pass
 
 
-class ProductCreate(BaseProduct):
-    category_id: int
-
-
-class ProductColorCreate(BaseProductColor):
-    pass
-
-
-class SizeCreate(BaseSize):
-    pass
-
-
-class ProductSizeCreate(BaseProductSize):
-    pass
-
-
-class OrderCreate(BaseOrder):
-    pass
-
-
-class OrderItemCreate(BaseOrderItem):
-    pass
 
 
 
 
-
-
-
+# Update-схемы
+class StockUpdate(BaseStock):
+    product_color_id: Optional[int] = None
+    size_id: Optional[int] = None
+    quantity: Optional[int] = None
 
 
 class CategoryUpdate(BaseCategory):
-    title_en: Optional[str]
-    title_ru: Optional[str]
+    title_en: Optional[str] = None
+    title_ru: Optional[str] = None
     title_ua: Optional[str]
-    title_tr: Optional[str]
-    description_en: Optional[str]
-    description_ru: Optional[str]
-    description_ua: Optional[str]
-    description_tr: Optional[str]
-    is_available: Optional[bool]
-    code: Optional[str]
+    description_en: Optional[str] = None
+    description_ru: Optional[str] = None
+    description_ua: Optional[str] = None
+    is_available: Optional[bool] = None
+    code: Optional[str] = None
 
 
-class ProductUpdate(BaseProduct):
-    title_en: Optional[str]
-    title_ru: Optional[str]
-    title_ua: Optional[str]
-    title_tr: Optional[str]
-    is_available: Optional[bool]
-    code: Optional[str]
-    description_en: Optional[str]
-    description_ru: Optional[str]
-    description_ua: Optional[str]
-    description_tr: Optional[str]
-    price: Optional[int]
-    sale: Optional[bool]
-    discount_value: Optional[int]
-    category_id: Optional[int]
+
+    
+class ProductColorCreate(BaseProductColor):
+    product_id: int
+    color_id: int    
+    slides: Optional[str] = None
+    sizes: List[int]
+
+    class Config:
+        orm_mode = True
+
+    @validator('sizes', pre=True)
+    def parse_sizes(cls, value):
+        if isinstance(value, str):
+            try:
+                # Попробуем преобразовать строку в список
+                return list(map(int, value.split(',')))
+            except ValueError:
+                raise ValueError("Invalid format for sizes. Expected a list of integers.")
+        elif isinstance(value, list):
+            # Если уже список, проверим, что все элементы — числа
+            if not all(isinstance(i, int) for i in value):
+                raise ValueError("Invalid format for sizes. Expected a list of integers.")
+            return value
+        raise ValueError("Invalid format for sizes. Expected a list of integers.")
+
+class SizeCreate(BaseModel):
+    value: str  # Название размера
+
+    class Config:
+        orm_mode = True
+
+
+class SizeUpdate(BaseModel):
+    value: Optional[str] = None  # Название размера (можно обновить)
+
+    class Config:
+        orm_mode = True
+
 
 
 class ProductColorUpdate(BaseProductColor):
-    product_id: Optional[int]
-    color_id: Optional[int]
-    avatar: Optional[str]
-    slides: Optional[str]
-    video: Optional[str]
-    is_available: Optional[bool]
+    product_id: Optional[int] = None
+    color_id: Optional[int] = None
+    avatar: Optional[str] = None
+    slides: Optional[str] = None
+    sizes: Optional[List[int]] = None
+    is_available: Optional[bool] = None
+    
+    class Config:
+        orm_mode = True
+
+    @validator('sizes', pre=True)
+    def parse_sizes(cls, value):
+        if isinstance(value, str):
+            try:
+                # Попробуем преобразовать строку в список
+                return list(map(int, value.split(',')))
+            except ValueError:
+                raise ValueError("Invalid format for sizes. Expected a list of integers.")
+        elif isinstance(value, list):
+            # Если уже список, проверим, что все элементы — числа
+            if not all(isinstance(i, int) for i in value):
+                raise ValueError("Invalid format for sizes. Expected a list of integers.")
+            return value
+        raise ValueError("Invalid format for sizes. Expected a list of integers.")
 
 
 class SizeUpdate(BaseSize):
-    value: Optional[str]
+    value: Optional[str] = None
 
 
-class ProductSizeUpdate(BaseProductSize):
-    product_color_id: Optional[int]
-    size_id: Optional[int]
-    quantity: Optional[int]
+class ColorRead(BaseModel):
+    id: int
+    name: str
+    code: Optional[str] = None  # Код цвета может быть необязательным
 
+    class Config:
+        orm_mode = True
 
-class OrderUpdate(BaseOrder):
-    name: Optional[str]
-    email: Optional[str]
-    phone: Optional[str]
-    order_status: Optional[str]
-    country: Optional[str]
-    city: Optional[str]
-    address: Optional[str]
-    delivery_method: Optional[str]
-    payment_method: Optional[str]
-    total_price: Optional[int]
+# Модель для создания
+class ColorCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=255)  # Обязательное поле
+    code: Optional[str] = Field(None, max_length=10)  # HEX код может быть длиной до 7 символов (#RRGGBB)
 
+# Модель для обновления
+class ColorUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=1, max_length=255)  # Обновление имени
+    code: Optional[str] = Field(None, max_length=10)  # Обновление кода цвета
+    
+    
+    
+    
+# Базовая схема для создания и обновления
+class SizeChartBase(BaseModel):
+    title: str
+    table: str
 
-class OrderItemUpdate(BaseOrderItem):
-    product_id: Optional[int]
-    product_color_id: Optional[int]
-    product_syze_id: Optional[int]
-    quantity: Optional[int]
-    price_per_unit: Optional[int]
-    order_id: Optional[int]
+# Схема для создания (наследуем от базовой)
+class SizeChartCreate(SizeChartBase):
+    pass
+
+# Схема для обновления (делаем все поля опциональными)
+class SizeChartUpdate(BaseModel):
+    title: Optional[str] = None
+    table: Optional[str] = None
+
+# Схема для чтения
+class SizeChartRead(SizeChartBase):
+    id: int
+
+    class Config:
+        orm_mode = True
