@@ -1,0 +1,6 @@
+/static
+static
+src/alembic/versions
+__pycache__
+versions
+.env

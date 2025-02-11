@@ -31,6 +31,7 @@ class Product(Base):
     description_en = Column(Text, nullable=True)
     description_ru = Column(Text, nullable=True)
     description_ua = Column(Text, nullable=True)
+    fabric = Column(Text, nullable=True)
     price = Column(Integer, nullable=False)  # Цена (оставлено как Integer)
     sale = Column(Boolean, default=False)
     discount_value = Column(Integer, nullable=True)

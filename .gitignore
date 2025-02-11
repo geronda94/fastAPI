@@ -1,14 +1,3 @@
-venv/
+src/alembic/versions
+/src/alembic/versions
 venv
-
-.env
-__pycache__/
-__pycache__
-.gitignore
-test.py
-src/chat/
-src/pages/
-src/tasks/
-src/templates/
-src/operations/
-src/static/

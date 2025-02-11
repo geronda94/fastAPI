@@ -203,6 +203,7 @@ async def get_products(
             "discount_value": product.discount_value,
             "category_id": product.category_id,
             "size_chart_id": product.size_chart_id,
+            "fabric": product.fabric,
             "colors": [
                 {
                     "id": color.id,  # ID записи в таблице `product_colors`
@@ -260,6 +261,7 @@ async def get_product_by_id(
         "discount_value": product.discount_value,
         "category_id": product.category_id,
         "size_chart_id": product.size_chart_id,
+        "fabric": product.fabric,
         "colors": [
             {
                 "id": color.id,  # ID записи в таблице `product_colors`

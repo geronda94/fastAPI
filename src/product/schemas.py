@@ -50,6 +50,7 @@ class BaseProduct(BaseModel):
     description_en: Optional[str] = None
     description_ru: Optional[str] = None
     description_ua: Optional[str] = None
+    fabric: Optional[str] = None
     avatar: Optional[str] = None
     video: Optional[str] = None
     price: int
@@ -77,6 +78,7 @@ class ProductRead(BaseModel):
     description_en: Optional[str] = None
     description_ru: Optional[str] = None
     description_ua: Optional[str] = None
+    fabric: Optional[str] = None
     price: float
     sale: Optional[bool]
     discount_value: Optional[float] = 0.0
@@ -100,6 +102,7 @@ class ProductUpdate(BaseProduct):
     description_en: Optional[str] = None
     description_ru: Optional[str] = None
     description_ua: Optional[str] = None
+    fabric: Optional[str] = None
     price: Optional[int] = None
     sale: Optional[bool] = None
     discount_value: Optional[int] = None
